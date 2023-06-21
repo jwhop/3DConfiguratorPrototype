@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class MouseSelector : MonoBehaviour
 {
@@ -11,6 +14,8 @@ public class MouseSelector : MonoBehaviour
     private int positionsCount;
     public Vector3 currentLastPos;
     private List<Vector2> PointPositions;
+    [SerializeField] GameObject textCanvas;
+    [SerializeField] TextMeshProUGUI text;
     // Start is called before the first frame update
     void Start()
     {
@@ -27,20 +32,28 @@ public class MouseSelector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            SceneManager.LoadScene(0);
+        }
         if (startedSelection)
         {
             Vector3 pt = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            textCanvas.GetComponent<RectTransform>().position = new Vector3(pt.x + 2.5f, 0.25f, pt.z + 1f);
             Vector3 adjustedPt = new Vector3(pt.x, 0, pt.z);
             float angle = Mathf.Atan2(pt.z - currentLastPos.z, pt.x - currentLastPos.x) * 180 / Mathf.PI;
             angle += 180f;
             if((angle > 0 && angle < 45) || (angle > 135 && angle < 225) || (angle > 315 && angle < 361))
             {
                 lr.SetPosition(positionsCount - 1, new Vector3(currentLastPos.x + (adjustedPt.x - currentLastPos.x), 0, currentLastPos.z));
+                text.text = Vector2.Distance(new Vector2(currentLastPos.x, currentLastPos.z), new Vector2(currentLastPos.x + (adjustedPt.x - currentLastPos.x), currentLastPos.z)).ToString().Substring(0,2);
             }
             else
             {
                 lr.SetPosition(positionsCount - 1, new Vector3(currentLastPos.x, 0, currentLastPos.z + (adjustedPt.z - currentLastPos.z)));
+                text.text = Vector2.Distance(new Vector2(currentLastPos.x, currentLastPos.z), new Vector2(currentLastPos.x, currentLastPos.z + (adjustedPt.z - currentLastPos.z))).ToString().Substring(0,2);
             }
+
 
         }
     }
