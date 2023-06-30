@@ -20,10 +20,13 @@ public class GridPoint : MonoBehaviour
     private void OnEnable()
     {
         MouseSelector.onReset += _OnResetPoint;
+        MouseSelector.onDrawMesh += _OnDrawMesh;
     }
     private void OnDisable()
     {
         MouseSelector.onReset -= _OnResetPoint;
+        MouseSelector.onDrawMesh -= _OnDrawMesh;
+
     }
 
     void OnMouseOver()
@@ -117,14 +120,15 @@ public class GridPoint : MonoBehaviour
         }
     }
 
-    void OnMouseDown()
+    void OnMouseUp()
     {
-        if (!selected && !EventSystem.current.IsPointerOverGameObject() && 
+        if (!selected && CameraMovement.Instance.GetDragTimer() && !MouseSelector.Instance.GetDoorGenerated() && !EventSystem.current.IsPointerOverGameObject() && 
             (MouseSelector.Instance.currentLastPos == null || 
             (MouseSelector.Instance.currentLastPos.position.x == transform.position.x || 
             MouseSelector.Instance.currentLastPos.position.z == transform.position.z
             )))
         {
+            print("successfully clicked on grid point");
             SelectPoint();
             
             if (MouseSelector.Instance.GetStartedSelection())
@@ -148,5 +152,13 @@ public class GridPoint : MonoBehaviour
         selected = false;
         mr.material = nonSelected;
         gameObject.layer = 0;
+    }
+
+    void _OnDrawMesh()
+    {
+        selected = false;
+        mr.material = nonSelected;
+        gameObject.layer = 0;
+        gameObject.SetActive(false);
     }
 }

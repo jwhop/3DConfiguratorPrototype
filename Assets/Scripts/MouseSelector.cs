@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 public class MouseSelector : MonoBehaviour
 {
     public static MouseSelector Instance { get; private set; }
-    private bool startedSelection;
+    private bool startedSelection, doorGenerated;
     public bool canHoverSelection;
     private LineRenderer lr;
     private int positionsCount;
@@ -17,13 +17,17 @@ public class MouseSelector : MonoBehaviour
     [SerializeField] GameObject textCanvas;
     [SerializeField] TextMeshProUGUI text;
     public delegate void OnReset();
+    public delegate void OnDrawMesh();
     public static OnReset onReset;
+    public static OnDrawMesh onDrawMesh;
     private GameObject hoverDot;
+    [SerializeField] Slider slider;
     // Start is called before the first frame update
     void Start()
     {
         Instance = this;
         startedSelection = false;
+        doorGenerated = false;
         lr = GetComponent<LineRenderer>();
         positionsCount = 0;
         lr.positionCount = 0;
@@ -46,7 +50,7 @@ public class MouseSelector : MonoBehaviour
             PointPositions.Clear();
             onReset?.Invoke();
         }
-        if (startedSelection)
+        if (startedSelection && !doorGenerated)
         {
             /*
             Vector3 pt = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -148,17 +152,9 @@ public class MouseSelector : MonoBehaviour
         return startedSelection;
     }
 
-    public void GenerateMeshFromPath()
+    public bool GetDoorGenerated()
     {
-        List<Vector3> vertices = new List<Vector3>();
-        for (int i = 1; i < PointPositions.Count; i++)
-        {
-            float offsetX = PointPositions[i - 1].x == PointPositions[i].x ? -0.25f : 0f;
-            float offsetZ = PointPositions[i - 1].y == PointPositions[i].y ? -0.25f : 0f;
-            vertices.Add(new Vector3(PointPositions[i-1].x + offsetX, 0, PointPositions[i-1].y + offsetZ));
-            vertices.Add(new Vector3(PointPositions[i].x + offsetX, 0, PointPositions[i].y + offsetZ));
-            vertices.Add(new Vector3(PointPositions[i - 1].x + offsetX, 2, PointPositions[i - 1].y + offsetZ));
-        }
+        return doorGenerated;
     }
 
     public void RedrawLines()
@@ -183,7 +179,17 @@ public class MouseSelector : MonoBehaviour
 
     public void GenerateDoor()
     {
-        MeshGeneration.Instance.GenerateDoor(PointPositions);
+        if(PointPositions.Count > 1)
+        {
+            doorGenerated = true;
+            lr.positionCount = 0;
+            currentLastPos = null;
+            onDrawMesh?.Invoke();
+            startedSelection = false;
+            MeshGeneration.Instance.GenerateDoor(PointPositions);
+            slider.value = 1;
+        }
+        
     }
 
 }

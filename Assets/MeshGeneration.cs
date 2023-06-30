@@ -7,11 +7,12 @@ public class MeshGeneration : MonoBehaviour
 {
     public static MeshGeneration Instance { get; private set; }
     [SerializeField] private Material doorMaterial;
+    [SerializeField] GameObject unitModel;
     // Start is called before the first frame update
     void Start()
     {
         Instance = this;
-        
+        Instance = this;
     }
 
     // Update is called once per frame
@@ -22,14 +23,15 @@ public class MeshGeneration : MonoBehaviour
 
     public void GenerateDoor(List<Vector2> pts) 
     {
+        float inc = SpawnPoints.Instance.GetIncrement();
         for (int i = 0; i < pts.Count; i++)
         {
-            Vector3 size = new Vector3(1, 1, 0.1f);
+            Vector3 size = new Vector3(inc/1000f * 1, 2, 0.1f);
 
             //if end, make it half the length
             if (i == 0 || i == pts.Count - 1)
             {
-                size.x = 0.5f;
+                size.x /= 2;
             }
             else
             {
@@ -37,24 +39,27 @@ public class MeshGeneration : MonoBehaviour
                 if ((pts[i].x == pts[i + 1].x && pts[i].y == pts[i-1].y) ||
                     (pts[i].y == pts[i + 1].y && pts[i].x == pts[i - 1].x))
                 {
-                    size.x = 0.5f;
+                    size.x /= 2;
                 }
             }
             
             ProBuilderMesh door = ShapeGenerator.GenerateCube(PivotLocation.Center, size);
+            //GameObject unit = Instantiate(unitModel);
             door.gameObject.transform.position = new Vector3(pts[i].x, 1f, pts[i].y);
-            
+            //unit.transform.position = new Vector3(pts[i].x, 1f, pts[i].y);
             //if vertical piece, rotate 90 degrees
-            if(i != pts.Count -1 && pts[i].x == pts[i + 1].x)
+            if (i != pts.Count -1 && pts[i].x == pts[i + 1].x)
             {
                 door.gameObject.transform.Rotate(Vector3.up, 90f);
+                //unit.transform.Rotate(Vector3.up, 90f);
             }
             else if (i == pts.Count - 1 && pts[i].x == pts[i - 1].x)
             {
                 door.gameObject.transform.Rotate(Vector3.up, 90f);
+                //unit.transform.Rotate(Vector3.up, 90f);
             }
 
-            if (size.x == 0.5)
+            if (Mathf.Approximately(size.x, (inc / 1000f * 0.5f)))
             {
                 Vector2 neighbor = i == pts.Count - 1 ? pts[i - 1] : pts[i + 1];
                 int direction;
@@ -66,7 +71,7 @@ public class MeshGeneration : MonoBehaviour
                 {
                     direction = pts[i].x < neighbor.x ? 1 : -1;
                 }
-                door.gameObject.transform.Translate(new Vector3(0.25f * direction, 0, 0), Space.Self);
+                door.gameObject.transform.Translate(new Vector3(inc / 1000f * 0.25f * direction, 0, 0), Space.Self);
                 //if not first or last, it's a corner
                 if(i != 0 && i != pts.Count - 1)
                 {
@@ -85,7 +90,7 @@ public class MeshGeneration : MonoBehaviour
                     {
                         secondaryDirection = pts[i].x < otherNeighbor.x ? 1 : -1;
                     }
-                    otherDoor.gameObject.transform.Translate(new Vector3(0.25f * secondaryDirection, 0, 0), Space.Self);
+                    otherDoor.gameObject.transform.Translate(new Vector3(inc / 1000f * 0.25f * secondaryDirection, 0, 0), Space.Self);
                     otherDoor.SetMaterial(otherDoor.faces, doorMaterial);
 
                 }
@@ -93,6 +98,6 @@ public class MeshGeneration : MonoBehaviour
             
             door.SetMaterial(door.faces, doorMaterial);
         }
-        
+
     }
 }
